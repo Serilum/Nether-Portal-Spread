@@ -58,7 +58,7 @@ public class Util {
 		File file = new File(dirpath + File.separator + "spreadsettings.txt");
 
 		if (dir.isDirectory() && file.isFile()) {
-			String spreadsettings = new String(Files.readAllBytes(Paths.get(dirpath + File.separator + "spreadsettings.txt", new String[0])));
+			String spreadsettings = new String(Files.readAllBytes(Paths.get(dirpath + File.separator + "spreadsettings.txt")));
 			spreadsettings = spreadsettings.replace("\n", "").replace("\r", "").replace(" ", ""); // remove newlines, tabs and spaces
 
 			for (String line : spreadsettings.split(",")) {
@@ -257,12 +257,10 @@ public class Util {
 		BlockPos rawportal = null;
 
 		int r = 3;
-		Iterator<BlockPos> it = BlockPos.betweenClosedStream(p.getX()-r, p.getY()-r, p.getZ()-r, p.getX()+r, p.getY()+r, p.getZ()+r).iterator();
-		while (it.hasNext()) {
-			BlockPos nextpos = it.next();
-			Block block = level.getBlockState(nextpos).getBlock();
-			if (CompareBlockFunctions.isPortalBlock(block)) {
-				rawportal = nextpos.immutable();
+		for (BlockPos nextPos : BlockPos.betweenClosed(p.getX()-r, p.getY()-r, p.getZ()-r, p.getX()+r, p.getY()+r, p.getZ()+r)) {
+			BlockState blockState = level.getBlockState(nextPos);
+			if (isPortalBlock(blockState)) {
+				rawportal = nextPos.immutable();
 				break;
 			}
 		}
@@ -271,13 +269,13 @@ public class Util {
 			return;
 		}
 
-		while (CompareBlockFunctions.isPortalBlock(level.getBlockState(rawportal.below()).getBlock())) {
+		while (isPortalBlock(level.getBlockState(rawportal.below()))) {
 			rawportal = rawportal.below().immutable();
 		}
-		while (CompareBlockFunctions.isPortalBlock(level.getBlockState(rawportal.west()).getBlock())) {
+		while (isPortalBlock(level.getBlockState(rawportal.west()))) {
 			rawportal = rawportal.west().immutable();
 		}
-		while (CompareBlockFunctions.isPortalBlock(level.getBlockState(rawportal.north()).getBlock())) {
+		while (isPortalBlock(level.getBlockState(rawportal.north()))) {
 			rawportal = rawportal.north().immutable();
 		}
 
@@ -304,6 +302,10 @@ public class Util {
 				netherblockcount+=1;
 			}
 		}
+	}
+
+	private static boolean isPortalBlock(BlockState blockState) {
+		return blockState.getBlock().equals(Blocks.NETHER_PORTAL);
 	}
 
 	public static void removePortal(Level level, BlockPos portal) {
@@ -432,25 +434,25 @@ public class Util {
 			return;
 		}
 
-		BlockState newblockstate = null;
+		BlockState currentBlockState = level.getBlockState(pos);
+		BlockState newBlockState = null;
 
-		BlockState curstate = level.getBlockState(pos);
-		Block curblock = curstate.getBlock();
+		Block curBlock = currentBlockState.getBlock();
 
-		if (convertblocks.contains(curblock)) {
+		if (convertblocks.contains(curBlock)) {
 			// key: from-block, value: HashMap of to-block and weight. so if two had weight 10 and 5, (1/15)*10 == 66.65% and 33.35% chance.
 			RandomCollection<Block> rc = new RandomCollection<>(); //.add(40, "a").add(35, "b").add(25, "c");
-			HashMap<Block, Double> hashmap = convertinto.get(curblock);
+			HashMap<Block, Double> hashmap = convertinto.get(curBlock);
 			for (Block b0 : hashmap.keySet()) {
 				Double weight = hashmap.get(b0);
 				rc.add(weight*100, b0);
 			}
 
-			newblockstate = rc.next().defaultBlockState();
+			newBlockState = rc.next().withPropertiesOf(currentBlockState);
 		}
 
-		if (newblockstate != null) {
-			level.setBlockAndUpdate(pos, newblockstate);
+		if (newBlockState != null) {
+			level.setBlockAndUpdate(pos, newBlockState);
 		}
 	}
 
