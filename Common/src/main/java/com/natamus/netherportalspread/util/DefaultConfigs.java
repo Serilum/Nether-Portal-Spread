@@ -8,7 +8,7 @@ public class DefaultConfigs {
 		List<String> config = new ArrayList<String>();
 		
 		config.add("stone; [netherrack>10 + magma_block>2 + nether_quartz_ore>1],");
-		config.add("grass; [nether_sprouts>1],");
+		config.add("short_grass; [nether_sprouts>1],");
 		config.add("cobblestone; [blackstone>1],");
 		config.add("grass_block; [crimson_nylium>1],");
 		config.add("dirt; [netherrack>1],");
