@@ -463,7 +463,7 @@ public class Util {
 		}
 
 		String message = ConfigHandler.messageOnPortalCreation;
-		StringFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.RED);
+		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.RED);
 	}
 
 	private static void sendPreventedMessage(Level level, BlockPos p) {
@@ -472,7 +472,7 @@ public class Util {
 		}
 
 		String message = ConfigHandler.messageOnPreventSpreadBlocksFound;
-		StringFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.DARK_GREEN);
+		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.DARK_GREEN);
 	}
 
 	private static void sendBrokenPortalMessage(Level level, BlockPos p) {
@@ -481,7 +481,7 @@ public class Util {
 		}
 
 		String message = ConfigHandler.messageOnPortalBroken;
-		StringFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.DARK_GREEN);
+		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.DARK_GREEN);
 	}
 	
 	private static String formatAroundString(String message, int amountneeded, BlockPos portal) {
