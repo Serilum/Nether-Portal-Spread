@@ -6,7 +6,7 @@ logoFile="icon.png"
 
 [[mods]]
 modId="netherportalspread"
-version="8.1"
+version="8.2"
 displayName="Nether Portal Spread"
 displayURL="https://serilum.com/mod/nether-portal-spread"
 authors="Rick South"
@@ -22,7 +22,7 @@ If you would like to contribute too, check out https://serilum.com/donate. Appre
 [[dependencies.netherportalspread]]
     modId="collective"
     mandatory=true
-    versionRange="[7.53,)"
+    versionRange="[7.54,)"
     ordering="NONE"
     side="BOTH"
 

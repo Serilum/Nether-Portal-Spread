@@ -6,8 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.event.TickEvent.LevelTickEvent;
-import net.neoforged.neoforge.event.TickEvent.Phase;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerChangedDimensionEvent;
 import net.neoforged.neoforge.event.level.BlockEvent.PortalSpawnEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -17,9 +16,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 @EventBusSubscriber
 public class NeoForgeSpreadEvent {
 	@SubscribeEvent
-	public static void onWorldTick(LevelTickEvent e) {
-		Level level = e.level;
-		if (level.isClientSide || !e.phase.equals(Phase.END)) {
+	public static void onWorldTick(LevelTickEvent.Post e) {
+		Level level = e.getLevel();
+		if (level.isClientSide) {
 			return;
 		}
 
