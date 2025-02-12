@@ -12,12 +12,10 @@ import net.minecraftforge.event.entity.player.PlayerEvent.PlayerChangedDimension
 import net.minecraftforge.event.level.BlockEvent.PortalSpawnEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
-@EventBusSubscriber
 public class ForgeSpreadEvent {
 	@SubscribeEvent
-	public void onWorldTick(LevelTickEvent e) {
+	public static void onWorldTick(LevelTickEvent e) {
 		Level level = e.level;
 		if (level.isClientSide || !e.phase.equals(Phase.END)) {
 			return;
@@ -27,7 +25,7 @@ public class ForgeSpreadEvent {
 	}
 	
 	@SubscribeEvent
-	public void onWorldLoad(LevelEvent.Load e) {
+	public static void onWorldLoad(LevelEvent.Load e) {
 		Level level = WorldFunctions.getWorldIfInstanceOfAndNotRemote(e.getLevel());
 		if (level == null) {
 			return;
@@ -37,7 +35,7 @@ public class ForgeSpreadEvent {
 	}
 
 	@SubscribeEvent
-	public void onPortalSpawn(PortalSpawnEvent e) {
+	public static void onPortalSpawn(PortalSpawnEvent e) {
 		Level level = WorldFunctions.getWorldIfInstanceOfAndNotRemote(e.getLevel());
 		if (level == null) {
 			return;
@@ -47,7 +45,7 @@ public class ForgeSpreadEvent {
 	}
 	
 	@SubscribeEvent
-	public void onDimensionChange(PlayerChangedDimensionEvent e) {
+	public static void onDimensionChange(PlayerChangedDimensionEvent e) {
 		Player player = e.getEntity();
     	Level level = player.level();
     	if (level.isClientSide) {
