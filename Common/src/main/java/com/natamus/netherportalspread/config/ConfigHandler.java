@@ -18,6 +18,7 @@ public class ConfigHandler extends DuskConfig {
 	@Entry public static String messageOnPortalBroken = "With the nether portal broken, the corrupted energy is no longer able to enter the overworld.";
 	@Entry public static boolean prefixPortalCoordsInMessage = true;
 	@Entry(min = 1, max = 100) public static int portalSpreadRadius = 30;
+	@Entry public static boolean circularPortalSpread = true;
 	@Entry(min = 1, max = 72000) public static int spreadDelayTicks = 40;
 	@Entry(min = 0, max = 1000) public static int instantConvertAmount = 50;
 	@Entry public static boolean preventSpreadWithBlock = true;
@@ -48,6 +49,9 @@ public class ConfigHandler extends DuskConfig {
 		));
 		configMetaData.put("portalSpreadRadius", Arrays.asList(
 			"The radius around the portal to which the nether blocks can spread."
+		));
+		configMetaData.put("circularPortalSpread", Arrays.asList(
+			"Fill a circular area around the portal. If disabled, fill a square area around the portal."
 		));
 		configMetaData.put("spreadDelayTicks", Arrays.asList(
 			"The delay in ticks in between the spread around the nether portal. 20 ticks = 1 second."

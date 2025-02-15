@@ -9,7 +9,6 @@ import net.minecraft.ResourceLocationException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -121,7 +120,7 @@ public class Util {
 					System.out.println("[Nether Portal Spread] Unable to find to-block '" + toblockstr + "' in the Forge block registry. Ignoring it.");
 				}
 
-				if (tempmap.size() == 0 || totalweight == 0) {
+				if (tempmap.isEmpty() || totalweight == 0) {
 					System.out.println("[Nether Portal Spread] The spread settings line '" + line + "' contains errors, no convert blocks were found. Ignoring it.");
 				}
 				else {
@@ -254,7 +253,7 @@ public class Util {
 
 	private static Boolean portalExists(Level level, BlockPos pos) {
 		for (BlockPos portalpos : HashMapFunctions.computeIfAbsent(portals, level, k -> new CopyOnWriteArrayList<BlockPos>())) {
-			double distance = pos.distSqr(new Vec3i(portalpos.getX(), portalpos.getY(), portalpos.getZ()));
+			double distance = pos.distSqr(portalpos);
 			if (distance < 10) {
 				return true;
 			}
@@ -301,15 +300,16 @@ public class Util {
 		portals.get(level).add(rawportal);
 		savePortalToWorld(level, rawportal);
 
+		if (ConfigHandler.instantConvertAmount <= 0) {
+			return;
+		}
 		int netherblockcount = countNetherBlocks(level, p);
-		if (netherblockcount < ConfigHandler.instantConvertAmount) {
-			while (netherblockcount < ConfigHandler.instantConvertAmount) {
-				if (!spreadNextBlock(level, p)) {
-					break;
-				}
-
-				netherblockcount+=1;
+		while (netherblockcount < ConfigHandler.instantConvertAmount) {
+			if (!spreadNextBlock(level, p)) {
+				break;
 			}
+
+			netherblockcount+=1;
 		}
 	}
 
@@ -348,6 +348,7 @@ public class Util {
 		}
 
 		int r = ConfigHandler.portalSpreadRadius;
+		boolean circular = ConfigHandler.circularPortalSpread;
 
 		BlockPos closest = null;
 		double nearestdistance = 100000;
@@ -366,7 +367,8 @@ public class Util {
 						}
 					}
 				}
-				double npnd = portal.distSqr(new Vec3i(np.getX(), np.getY(), np.getZ()));
+				double npnd = portal.distSqr(np);
+				if (circular && npnd > r*r) continue;
 				if (npnd < nearestdistance) {
 					if (isNetherTarget(level, np, false)) {
 						nearestdistance = npnd;
@@ -413,10 +415,12 @@ public class Util {
 	public static int countNetherBlocks(Level level, BlockPos p) {
 		int nethercount = 0;
 		int r = ConfigHandler.portalSpreadRadius;
+		boolean circular = ConfigHandler.circularPortalSpread;
 
 		Iterator<BlockPos> it = BlockPos.betweenClosedStream(p.getX()-r, p.getY()-r, p.getZ()-r, p.getX()+r, p.getY()+r, p.getZ()+r).iterator();
 		while (it.hasNext()) {
 			BlockPos np = it.next();
+			if (circular && np.distSqr(p) > r*r) continue;
 			if (isNetherTarget(level, np, true)) {
 				nethercount+=1;
 			}
