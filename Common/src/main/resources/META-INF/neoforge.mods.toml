@@ -1,28 +1,28 @@
 modLoader="javafml"
 loaderVersion="*"
-license="All rights reserved"
+license="All Rights Reserved"
 issueTrackerURL="https://github.com/Serilum/.issue-tracker/labels/Mod:%20Nether%20Portal%20Spread"
 logoFile="icon.png"
 
 [[mods]]
 modId="netherportalspread"
-version="8.4"
+version="8.5"
 displayName="Nether Portal Spread"
 displayURL="https://serilum.com/mod/nether-portal-spread"
-authors="Rick South"
+authors="Serilum"
 description='''Nether portals spread (custom) nether blocks to the overworld around the portal in a configurable radius.
 '''
 credits='''Thank you very much to my Membership sponsors for supporting the development of this mod:  
 
-Alister, Andrean Olgo, aternosorg, Cherriesaurus, David Sanchez, drdog111, Michael W. S., t128, Tyler Behl, XAgent   
+Andrean Olgo, AnyankaT, aternosorg, Cherriesaurus, Linda Jansen, MWS, Tyler Behl   
 
-If you would like to contribute too, check out https://serilum.com/donate. Appreciate it! <3   
+If you would like to contribute too, check out https://serilum.com/donate Appreciate it! <3   
 '''
 
 [[dependencies.netherportalspread]]
     modId="collective"
     type="required"
-    versionRange="[7.91,)"
+    versionRange="[8.40,)"
     ordering="NONE"
     side="BOTH"
 

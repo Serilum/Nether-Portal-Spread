@@ -1,35 +1,35 @@
 {
   "schemaVersion": 1,
   "id": "netherportalspread",
-  "version": "8.4",
+  "version": "8.5",
 
   "name": "Nether Portal Spread",
   "description": "Nether portals spread (custom) nether blocks to the overworld around the portal in a configurable radius.",
-  "authors": [ "Rick South" ],
+  "authors": [ "Serilum" ],
   "contact": {
     "homepage": "https://serilum.com/mod/nether-portal-spread",
     "sources": "https://github.com/Serilum/Nether-Portal-Spread",
     "issues": "https://github.com/Serilum/.issue-tracker/labels/Mod:%20Nether%20Portal%20Spread"
   },
 
-  "license": "All Right Reserved",
+  "license": "All Rights Reserved",
   "icon": "icon.png",
 
   "environment": "*",
-  "entrypoints": { "main": [ "com.natamus.netherportalspread.ModFabric" ], "modmenu": [ "com.natamus.netherportalspread.fabric.config.IntegrateModMenu" ] },
+  "entrypoints": { "main": [ "com.serilum.netherportalspread.ModFabric" ], "modmenu": [ "com.serilum.netherportalspread.fabric.config.IntegrateModMenu" ] },
 
   "depends": {
     "fabricloader": ">=0.15.0",
     "fabric": "*",
     "minecraft": ">=1.21",
     "java": ">=21",
-    "collective": ">=7.91"
+    "collective": ">=8.40"
   },
 
   "custom": {
     "modmenu": {
       "links": {
-        "Donate <3" : "https://ricksouth.com/donate"
+        "Donate <3" : "https://serilum.com/donate"
       }
     }
   },
@@ -38,18 +38,15 @@
 	  " ",
 	  "Thank you very much to my Membership sponsors for supporting the development of this mod!",
 	  " ",
-	  "If you would like to contribute too, check out https://serilum.com/donate.",
+	  "If you would like to contribute too, check out https://serilum.com/donate",
 	  " ",
 	  "Membership sponsors:",
-	  " Alister",
 	  " Andrean Olgo",
+	  " AnyankaT",
 	  " aternosorg",
 	  " Cherriesaurus",
-	  " David Sanchez",
-	  " drdog111",
-	  " Michael W. S.",
-	  " t128",
-	  " Tyler Behl",
-	  " XAgent"
+	  " Linda Jansen",
+	  " MWS",
+	  " Tyler Behl"
   ]
 }
