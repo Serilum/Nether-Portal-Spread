@@ -1,9 +1,9 @@
-package com.natamus.netherportalspread.util;
+package com.serilum.netherportalspread.util;
 
 import com.natamus.collective.functions.*;
 import com.natamus.collective.objects.RandomCollection;
-import com.natamus.netherportalspread.config.ConfigHandler;
-import com.natamus.netherportalspread.data.Variables;
+import com.serilum.netherportalspread.config.ConfigHandler;
+import com.serilum.netherportalspread.data.Variables;
 import net.minecraft.ChatFormatting;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.core.BlockPos;

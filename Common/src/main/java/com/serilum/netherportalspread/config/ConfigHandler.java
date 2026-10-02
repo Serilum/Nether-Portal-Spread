@@ -1,7 +1,7 @@
-package com.natamus.netherportalspread.config;
+package com.serilum.netherportalspread.config;
 
 import com.natamus.collective.config.DuskConfig;
-import com.natamus.netherportalspread.util.Reference;
+import com.serilum.netherportalspread.util.Reference;
 
 import java.util.Arrays;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package com.natamus.netherportalspread.util;
+package com.serilum.netherportalspread.util;
 
 import java.util.ArrayList;
 import java.util.List;

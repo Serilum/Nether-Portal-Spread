@@ -1,7 +1,7 @@
-package com.natamus.netherportalspread.forge.config;
+package com.serilum.netherportalspread.forge.config;
 
 import com.natamus.collective.config.DuskConfig;
-import com.natamus.netherportalspread.util.Reference;
+import com.serilum.netherportalspread.util.Reference;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.fml.ModLoadingContext;
 

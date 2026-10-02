@@ -1,10 +1,10 @@
-package com.natamus.netherportalspread;
+package com.serilum.netherportalspread;
 
 import com.natamus.collective.check.RegisterMod;
 import com.natamus.collective.check.ShouldLoadCheck;
-import com.natamus.netherportalspread.forge.config.IntegrateForgeConfig;
-import com.natamus.netherportalspread.forge.events.ForgeSpreadEvent;
-import com.natamus.netherportalspread.util.Reference;
+import com.serilum.netherportalspread.forge.config.IntegrateForgeConfig;
+import com.serilum.netherportalspread.forge.events.ForgeSpreadEvent;
+import com.serilum.netherportalspread.util.Reference;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -32,7 +32,7 @@ public class ModForge {
 	}
 
 	private void loadComplete(final FMLLoadCompleteEvent event) {
-    	MinecraftForge.EVENT_BUS.register(ForgeSpreadEvent.class);
+		MinecraftForge.EVENT_BUS.register(ForgeSpreadEvent.class);
 	}
 
 	private static void setGlobalConstants() {

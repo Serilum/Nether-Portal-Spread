@@ -1,11 +1,11 @@
-package com.natamus.netherportalspread;
+package com.serilum.netherportalspread;
 
 import com.natamus.collective.check.RegisterMod;
 import com.natamus.collective.check.ShouldLoadCheck;
 import com.natamus.collective.fabric.callbacks.CollectiveBlockEvents;
 import com.natamus.collective.fabric.callbacks.CollectivePlayerEvents;
-import com.natamus.netherportalspread.events.SpreadEvent;
-import com.natamus.netherportalspread.util.Reference;
+import com.serilum.netherportalspread.events.SpreadEvent;
+import com.serilum.netherportalspread.util.Reference;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;

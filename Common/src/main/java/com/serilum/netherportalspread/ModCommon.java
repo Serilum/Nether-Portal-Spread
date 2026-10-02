@@ -1,6 +1,6 @@
-package com.natamus.netherportalspread;
+package com.serilum.netherportalspread;
 
-import com.natamus.netherportalspread.config.ConfigHandler;
+import com.serilum.netherportalspread.config.ConfigHandler;
 
 public class ModCommon {
 

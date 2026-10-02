@@ -1,9 +1,9 @@
-package com.natamus.netherportalspread.events;
+package com.serilum.netherportalspread.events;
 
 import com.natamus.collective.functions.HashMapFunctions;
 import com.natamus.collective.functions.WorldFunctions;
-import com.natamus.netherportalspread.config.ConfigHandler;
-import com.natamus.netherportalspread.util.Util;
+import com.serilum.netherportalspread.config.ConfigHandler;
+import com.serilum.netherportalspread.util.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;

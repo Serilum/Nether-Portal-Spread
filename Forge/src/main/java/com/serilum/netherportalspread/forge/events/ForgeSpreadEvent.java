@@ -1,7 +1,7 @@
-package com.natamus.netherportalspread.forge.events;
+package com.serilum.netherportalspread.forge.events;
 
 import com.natamus.collective.functions.WorldFunctions;
-import com.natamus.netherportalspread.events.SpreadEvent;
+import com.serilum.netherportalspread.events.SpreadEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -47,10 +47,10 @@ public class ForgeSpreadEvent {
 	@SubscribeEvent
 	public static void onDimensionChange(PlayerChangedDimensionEvent e) {
 		Player player = e.getEntity();
-    	Level level = player.level();
-    	if (level.isClientSide) {
-    		return;
-    	}
+		Level level = player.level();
+		if (level.isClientSide) {
+			return;
+		}
 
 		SpreadEvent.onDimensionChange((ServerLevel)level, (ServerPlayer)player);
 	}
