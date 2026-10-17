@@ -22,7 +22,7 @@ public class ConfigHandler extends DuskConfig {
 	@Entry(min = 0, max = 1000) public static int instantConvertAmount = 50;
 	@Entry public static boolean preventSpreadWithBlock = true;
 	@Entry(min = 1, max = 100) public static int preventSpreadBlockAmountNeeded = 4;
-	@Entry public static String preventSpreadBlockString = "minecraft:coal_block";
+	@Entry(registry = "block", single = true) public static String preventSpreadBlockString = "minecraft:coal_block";
 
 	public static void initConfig() {
 		configMetaData.put("sendMessageOnPortalCreation", Arrays.asList(
