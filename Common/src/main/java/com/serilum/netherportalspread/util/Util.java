@@ -36,7 +36,7 @@ public class Util {
 	private static final HashMap<Block, HashMap<Block, Double>> convertinto = new HashMap<Block, HashMap<Block, Double>>();
 	private static final List<Block> convertblocks = new ArrayList<Block>();
 	private static final List<Block> convertedblocks = new ArrayList<Block>();
-	private static Block preventSpreadBlock = null;
+	public static Block preventSpreadBlock = null;
 
 	public static void attemptSpreadBlockProcess(Level level) {
 		if (!Variables.processedSpreadBlockLoad) {
@@ -151,24 +151,32 @@ public class Util {
 
 			loadSpreadBlocks(level);
 		}
+	}
 
-		if (preventSpreadBlock == null) {
-			String psbstr = ConfigHandler.preventSpreadBlockString.strip().replaceAll("[^a-z0-9_.-:]", "");
-			try {
-				Identifier psbrl = Identifier.parse(psbstr);
-				if (blockRegistry.keySet().contains(psbrl)) {
-					Optional<Holder.Reference<Block>> preventSpreadBlockOptionalReference = blockRegistry.get(psbrl);
-					if (preventSpreadBlockOptionalReference.isPresent()) {
-						preventSpreadBlock = preventSpreadBlockOptionalReference.get().value();
-						return;
-					}
+	private static Block getPreventSpreadBlock(Level level) {
+		Block cachedBlock = preventSpreadBlock;
+		if (cachedBlock != null) {
+			return cachedBlock;
+		}
+
+		Registry<Block> blockRegistry = level.registryAccess().lookupOrThrow(Registries.BLOCK);
+		String psbstr = ConfigHandler.preventSpreadBlockString.strip().replaceAll("[^a-z0-9_.-:]", "");
+		try {
+			Identifier psbrl = Identifier.parse(psbstr);
+			if (blockRegistry.keySet().contains(psbrl)) {
+				Optional<Holder.Reference<Block>> preventSpreadBlockOptionalReference = blockRegistry.get(psbrl);
+				if (preventSpreadBlockOptionalReference.isPresent()) {
+					Block registryBlock = preventSpreadBlockOptionalReference.get().value();
+					preventSpreadBlock = registryBlock;
+					return registryBlock;
 				}
 			}
-			catch (IdentifierException ignored) { }
-
-			System.out.println("[Nether Portal Spread] Unable to get a prevent-spread-block from the string '" + psbstr + "'. Using the default coal block instead.");
-			preventSpreadBlock = Blocks.COAL_BLOCK;
 		}
+		catch (IdentifierException ignored) { }
+
+		System.out.println("[Nether Portal Spread] Unable to get a prevent-spread-block from the string '" + psbstr + "'. Using the default coal block instead.");
+		preventSpreadBlock = Blocks.COAL_BLOCK;
+		return Blocks.COAL_BLOCK;
 	}
 
 	public static void loadPortalsFromWorld(Level level) {
@@ -221,7 +229,7 @@ public class Util {
 							while (it.hasNext()) {
 								try {
 									BlockPos np = it.next();
-									if (level.getBlockState(np).getBlock().equals(preventSpreadBlock)) {
+									if (level.getBlockState(np).getBlock().equals(getPreventSpreadBlock(level))) {
 										coalcount++;
 										if (coalcount >= psamount) {
 											break;
@@ -359,7 +367,7 @@ public class Util {
 			try {
 				BlockPos np = it.next();
 				if (ConfigHandler.preventSpreadWithBlock) {
-					if (level.getBlockState(np).getBlock().equals(preventSpreadBlock)) {
+					if (level.getBlockState(np).getBlock().equals(getPreventSpreadBlock(level))) {
 						coalcount++;
 						if (coalcount >= psamount) {
 							break;
@@ -471,7 +479,7 @@ public class Util {
 		}
 
 		String message = ConfigHandler.messageOnPortalCreation;
-		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.RED);
+		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(level, message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.RED);
 	}
 
 	private static void sendPreventedMessage(Level level, BlockPos p) {
@@ -480,7 +488,7 @@ public class Util {
 		}
 
 		String message = ConfigHandler.messageOnPreventSpreadBlocksFound;
-		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.DARK_GREEN);
+		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(level, message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.DARK_GREEN);
 	}
 
 	private static void sendBrokenPortalMessage(Level level, BlockPos p) {
@@ -489,15 +497,11 @@ public class Util {
 		}
 
 		String message = ConfigHandler.messageOnPortalBroken;
-		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.DARK_GREEN);
+		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(level, message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.DARK_GREEN);
 	}
 	
-	private static String formatAroundString(String message, int amountneeded, BlockPos portal) {
-		if (preventSpreadBlock == null) {
-			preventSpreadBlock = Blocks.COAL_BLOCK;
-		}
-		
-		String blockstring = BlockFunctions.blockToReadableString(preventSpreadBlock, amountneeded);
+	private static String formatAroundString(Level level, String message, int amountneeded, BlockPos portal) {
+		String blockstring = BlockFunctions.blockToReadableString(getPreventSpreadBlock(level), amountneeded);
 
 		message = message.replace("%preventSpreadBlockString%", blockstring);
 		message = message.replace("%preventSpreadBlockAmountNeeded%", amountneeded + "");
