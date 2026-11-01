@@ -8,13 +8,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.portal.PortalShape;
 
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SpreadEvent {
-	private static final HashMap<Level, CopyOnWriteArrayList<BlockPos>> portals_to_process = new HashMap<Level, CopyOnWriteArrayList<BlockPos>>();
+	private static final HashMap<Level, CopyOnWriteArrayList<BlockPos>> portalsToProcess = new HashMap<Level, CopyOnWriteArrayList<BlockPos>>();
 	private static final HashMap<Level, Integer> levelTicks = new HashMap<Level, Integer>();
 
 	public static void onWorldLoad(ServerLevel level) {
@@ -30,19 +29,19 @@ public class SpreadEvent {
 			return;
 		}
 
-		if (HashMapFunctions.computeIfAbsent(portals_to_process, level, k -> new CopyOnWriteArrayList<BlockPos>()).size() > 0) {
-			BlockPos portal = portals_to_process.get(level).get(0);
+		if (HashMapFunctions.computeIfAbsent(portalsToProcess, level, k -> new CopyOnWriteArrayList<BlockPos>()).size() > 0) {
+			BlockPos portal = portalsToProcess.get(level).get(0);
 
-			if (!HashMapFunctions.computeIfAbsent(Util.portals, level, k -> new CopyOnWriteArrayList<BlockPos>()).contains(portal) && !HashMapFunctions.computeIfAbsent(Util.preventedportals, level, k -> new HashMap<BlockPos, Boolean>()).containsKey(portal)) {
+			if (!HashMapFunctions.computeIfAbsent(Util.portals, level, k -> new CopyOnWriteArrayList<BlockPos>()).contains(portal) && !HashMapFunctions.computeIfAbsent(Util.preventedPortals, level, k -> new HashMap<BlockPos, Boolean>()).containsKey(portal)) {
 				Util.validatePortalAndAdd(level, portal);
 			}
 
-			portals_to_process.get(level).remove(0);
+			portalsToProcess.get(level).remove(0);
 		}
 
-		int leveltick = HashMapFunctions.computeIfAbsent(levelTicks, level, k -> 1);
-		if (leveltick % ConfigHandler.spreadDelayTicks != 0) {
-			levelTicks.put(level, leveltick+1);
+		int levelTick = HashMapFunctions.computeIfAbsent(levelTicks, level, k -> 1);
+		if (levelTick % ConfigHandler.spreadDelayTicks != 0) {
+			levelTicks.put(level, levelTick+1);
 			return;
 		}
 		levelTicks.put(level, 1);
@@ -52,7 +51,7 @@ public class SpreadEvent {
 		}
 	}
 
-	public static void onPortalSpawn(Level level, BlockPos pos, PortalShape shape) {
+	public static void onPortalSpawn(Level level, BlockPos pos) {
 		if (level == null) {
 			return;
 		}
@@ -65,7 +64,7 @@ public class SpreadEvent {
 			return;
 		}
 
-		HashMapFunctions.computeIfAbsent(portals_to_process, level, k -> new CopyOnWriteArrayList<BlockPos>()).add(pos);
+		HashMapFunctions.computeIfAbsent(portalsToProcess, level, k -> new CopyOnWriteArrayList<BlockPos>()).add(pos);
 	}
 
 	public static void onDimensionChange(ServerLevel level, ServerPlayer player) {
@@ -77,7 +76,7 @@ public class SpreadEvent {
 			return;
 		}
 
-		BlockPos ppos = player.blockPosition();
-		HashMapFunctions.computeIfAbsent(portals_to_process, level, k -> new CopyOnWriteArrayList<BlockPos>()).add(ppos);
+		BlockPos playerPos = player.blockPosition();
+		HashMapFunctions.computeIfAbsent(portalsToProcess, level, k -> new CopyOnWriteArrayList<BlockPos>()).add(playerPos);
 	}
 }

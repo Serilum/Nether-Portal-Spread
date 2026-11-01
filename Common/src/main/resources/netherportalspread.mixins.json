@@ -4,7 +4,7 @@
   "package": "com.serilum.netherportalspread.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-
+    "PortalShapeMixin"
   ],
   "client": [
   
