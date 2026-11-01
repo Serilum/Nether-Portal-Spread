@@ -13,8 +13,8 @@ public class ModCommon {
 	}
 
 	private static void load() {
-		ConfigCallback.CONFIG_CHANGED.register((String modid) -> {
-			if (!modid.equals(Reference.MOD_ID)) {
+		ConfigCallback.CONFIG_CHANGED.register((String modId) -> {
+			if (!modId.equals(Reference.MOD_ID)) {
 				return;
 			}
 

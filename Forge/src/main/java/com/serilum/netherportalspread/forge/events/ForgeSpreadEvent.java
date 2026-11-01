@@ -9,7 +9,6 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.event.TickEvent.LevelTickEvent;
 import net.minecraftforge.event.TickEvent.Phase;
 import net.minecraftforge.event.entity.player.PlayerEvent.PlayerChangedDimensionEvent;
-import net.minecraftforge.event.level.BlockEvent.PortalSpawnEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -34,16 +33,6 @@ public class ForgeSpreadEvent {
 		SpreadEvent.onWorldLoad((ServerLevel)level);
 	}
 
-	@SubscribeEvent
-	public static void onPortalSpawn(PortalSpawnEvent e) {
-		Level level = WorldFunctions.getWorldIfInstanceOfAndNotRemote(e.getLevel());
-		if (level == null) {
-			return;
-		}
-
-		SpreadEvent.onPortalSpawn(level, e.getPos(), e.getPortalSize());
-	}
-	
 	@SubscribeEvent
 	public static void onDimensionChange(PlayerChangedDimensionEvent e) {
 		Player player = e.getEntity();
