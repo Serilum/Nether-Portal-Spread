@@ -2,19 +2,15 @@ package com.serilum.netherportalspread;
 
 import com.natamus.collective.check.RegisterMod;
 import com.natamus.collective.check.ShouldLoadCheck;
-import com.natamus.collective.fabric.callbacks.CollectiveBlockEvents;
 import com.natamus.collective.fabric.callbacks.CollectivePlayerEvents;
 import com.serilum.netherportalspread.events.SpreadEvent;
 import com.serilum.netherportalspread.util.Reference;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.portal.PortalShape;
 
 public class ModFabric implements ModInitializer {
 	
@@ -39,10 +35,6 @@ public class ModFabric implements ModInitializer {
 
 		ServerTickEvents.START_LEVEL_TICK.register((ServerLevel world) -> {
 			SpreadEvent.onWorldTick(world);
-		});
-
-		CollectiveBlockEvents.ON_NETHER_PORTAL_SPAWN.register((Level world, BlockPos pos, PortalShape shape) -> {
-			SpreadEvent.onPortalSpawn(world, pos, shape);
 		});
 
 		CollectivePlayerEvents.PLAYER_CHANGE_DIMENSION.register((ServerLevel world, ServerPlayer player) -> {
