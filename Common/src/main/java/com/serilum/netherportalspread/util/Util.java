@@ -3,12 +3,14 @@ package com.serilum.netherportalspread.util;
 import com.natamus.collective.functions.*;
 import com.natamus.collective.objects.RandomCollection;
 import com.serilum.netherportalspread.config.ConfigHandler;
+import com.serilum.netherportalspread.data.Constants;
 import com.serilum.netherportalspread.data.Variables;
 import net.minecraft.ChatFormatting;
 import net.minecraft.IdentifierException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -17,6 +19,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,11 +35,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Util {
 	public static HashMap<Level, CopyOnWriteArrayList<BlockPos>> portals = new HashMap<Level, CopyOnWriteArrayList<BlockPos>>();
-	public static HashMap<Level, HashMap<BlockPos, Boolean>> preventedportals = new HashMap<Level, HashMap<BlockPos, Boolean>>();
+	public static HashMap<Level, HashMap<BlockPos, Boolean>> preventedPortals = new HashMap<Level, HashMap<BlockPos, Boolean>>();
 
-	private static final HashMap<Block, HashMap<Block, Double>> convertinto = new HashMap<Block, HashMap<Block, Double>>();
-	private static final List<Block> convertblocks = new ArrayList<Block>();
-	private static final List<Block> convertedblocks = new ArrayList<Block>();
+	private static final HashMap<Block, HashMap<Block, Double>> convertInto = new HashMap<Block, HashMap<Block, Double>>();
+	private static final List<Block> convertBlocks = new ArrayList<Block>();
+	private static final List<Block> convertedBlocks = new ArrayList<Block>();
 	public static Block preventSpreadBlock = null;
 
 	public static void attemptSpreadBlockProcess(Level level) {
@@ -44,7 +48,7 @@ public class Util {
 				loadSpreadBlocks(level);
 				Variables.processedSpreadBlockLoad = true;
 			} catch (IOException ex) {
-				System.out.println("[" + Reference.NAME + "] Something went wrong loading the nether spread block config.");
+				Constants.logger.warn("[" + Reference.NAME + "] Something went wrong loading the nether spread block config.");
 			}
 		}
 	}
@@ -52,99 +56,99 @@ public class Util {
 	public static void loadSpreadBlocks(Level level) throws IOException {
 		Registry<Block> blockRegistry = level.registryAccess().lookupOrThrow(Registries.BLOCK);
 
-		String dirpath = DataFunctions.getConfigDirectory() + File.separator + "netherportalspread";
-		File dir = new File(dirpath);
-		File file = new File(dirpath + File.separator + "spreadsettings.txt");
+		String dirPath = DataFunctions.getConfigDirectory() + File.separator + "netherportalspread";
+		File dir = new File(dirPath);
+		File file = new File(dirPath + File.separator + "spreadsettings.txt");
 
 		if (dir.isDirectory() && file.isFile()) {
-			String spreadsettings = new String(Files.readAllBytes(Paths.get(dirpath + File.separator + "spreadsettings.txt")));
-			spreadsettings = spreadsettings.replace("\n", "").replace("\r", "").replace(" ", ""); // remove newlines, tabs and spaces
+			String spreadSettings = new String(Files.readAllBytes(Paths.get(dirPath + File.separator + "spreadsettings.txt")));
+			spreadSettings = spreadSettings.replace("\n", "").replace("\r", "").replace(" ", ""); // remove newlines, tabs and spaces
 
-			for (String line : spreadsettings.split(",")) {
+			for (String line : spreadSettings.split(",")) {
 				if (line.length() < 4) {
-					System.out.println("The Nether Portal Spread spread settings contains an empty line. Ignoring it.");
+					Constants.logger.warn("[" + Reference.NAME + "] The spread settings contain an empty line. Ignoring it.");
 					continue;
 				}
 
-				String[] linespl = line.split(";");
-				if (linespl.length != 2) {
-					System.out.println("[Nether Portal Spread] The spread settings line '" + line + "' contains errors. Ignoring it.");
+				String[] lineSplit = line.split(";");
+				if (lineSplit.length != 2) {
+					Constants.logger.warn("[" + Reference.NAME + "] The spread settings line '" + line + "' contains errors. Ignoring it.");
 					continue;
 				}
 
-				String fromblockstr = linespl[0];
-				if (!fromblockstr.contains(":")) {
-					fromblockstr = "minecraft:" + fromblockstr;
+				String fromBlockString = lineSplit[0];
+				if (!fromBlockString.contains(":")) {
+					fromBlockString = "minecraft:" + fromBlockString;
 				}
-				Identifier frl = Identifier.parse(fromblockstr);
-				if (!blockRegistry.keySet().contains(frl)) {
-					System.out.println("[Nether Portal Spread] 1: Unable to find from-block '" + fromblockstr + "' in the Forge block registry. Ignoring it.");
+				Identifier fromBlockIdentifier = Identifier.parse(fromBlockString);
+				if (!blockRegistry.keySet().contains(fromBlockIdentifier)) {
+					Constants.logger.warn("[" + Reference.NAME + "] Unable to find from-block '" + fromBlockString + "' in the block registry. Ignoring it.");
 					continue;
 				}
-				Optional<Holder.Reference<Block>> fromBlockOptionalReference = blockRegistry.get(frl);
+				Optional<Holder.Reference<Block>> fromBlockOptionalReference = blockRegistry.get(fromBlockIdentifier);
 				if (fromBlockOptionalReference.isEmpty()) {
-					System.out.println("[Nether Portal Spread] 2: Unable to find from-block '" + fromblockstr + "' in the Forge block registry. Ignoring it.");
+					Constants.logger.warn("[" + Reference.NAME + "] Unable to find from-block '" + fromBlockString + "' in the block registry. Ignoring it.");
 					continue;
 				}
 
-				String toblocks = linespl[1].replace("[", "").replace("]", "");
+				String toBlocks = lineSplit[1].replace("[", "").replace("]", "");
 
-				double totalweight = 0;
-				HashMap<Block, Double> tempmap = new HashMap<Block, Double>();
-				for (String tb : toblocks.split("\\+")) {
-					String[] tbspl = tb.split(">");
-					if (tbspl.length < 2) {
+				double totalWeight = 0;
+				HashMap<Block, Double> toBlockWeights = new HashMap<Block, Double>();
+				for (String toBlockEntry : toBlocks.split("\\+")) {
+					String[] toBlockEntrySplit = toBlockEntry.split(">");
+					if (toBlockEntrySplit.length < 2) {
 						continue;
 					}
 
-					String toblockstr = tbspl[0];
-					if (!toblockstr.contains(":")) {
-						toblockstr = "minecraft:" + toblockstr;
+					String toBlockString = toBlockEntrySplit[0];
+					if (!toBlockString.contains(":")) {
+						toBlockString = "minecraft:" + toBlockString;
 					}
 
 					double weight = 1.0;
 					try {
-						weight = Double.parseDouble(tbspl[1]);
+						weight = Double.parseDouble(toBlockEntrySplit[1]);
 					}
 					catch (NumberFormatException ignored) { }
-					totalweight += weight;
+					totalWeight += weight;
 
-					Identifier trl = Identifier.parse(toblockstr);
-					if (blockRegistry.keySet().contains(trl)) {
-						Optional<Holder.Reference<Block>> trlBlockOptionalReference = blockRegistry.get(trl);
-						if (trlBlockOptionalReference.isPresent()) {
-							tempmap.put(trlBlockOptionalReference.get().value(), weight);
+					Identifier toBlockIdentifier = Identifier.parse(toBlockString);
+					if (blockRegistry.keySet().contains(toBlockIdentifier)) {
+						Optional<Holder.Reference<Block>> toBlockOptionalReference = blockRegistry.get(toBlockIdentifier);
+						if (toBlockOptionalReference.isPresent()) {
+							toBlockWeights.put(toBlockOptionalReference.get().value(), weight);
 							continue;
 						}
 					}
 
-					System.out.println("[Nether Portal Spread] Unable to find to-block '" + toblockstr + "' in the Forge block registry. Ignoring it.");
+					Constants.logger.warn("[" + Reference.NAME + "] Unable to find to-block '" + toBlockString + "' in the block registry. Ignoring it.");
 				}
 
-				if (tempmap.size() == 0 || totalweight == 0) {
-					System.out.println("[Nether Portal Spread] The spread settings line '" + line + "' contains errors, no convert blocks were found. Ignoring it.");
+				if (toBlockWeights.size() == 0 || totalWeight == 0) {
+					Constants.logger.warn("[" + Reference.NAME + "] The spread settings line '" + line + "' contains errors, no convert blocks were found. Ignoring it.");
 				}
 				else {
-					for (Block key : tempmap.keySet()) {
-						Double weightvalue = tempmap.get(key);
-						tempmap.put(key, (1/totalweight)*weightvalue);
+					for (Block key : toBlockWeights.keySet()) {
+						Double weightValue = toBlockWeights.get(key);
+						toBlockWeights.put(key, (1/totalWeight)*weightValue);
 					}
-					convertinto.put(fromBlockOptionalReference.get().value(), tempmap);
+					convertInto.put(fromBlockOptionalReference.get().value(), toBlockWeights);
 				}
 			}
 
-			for (Block b0 : convertinto.keySet()) {
-				convertblocks.add(b0);
-				convertedblocks.addAll(convertinto.get(b0).keySet());
+			for (Block fromBlock : convertInto.keySet()) {
+				convertBlocks.add(fromBlock);
+				convertedBlocks.addAll(convertInto.get(fromBlock).keySet());
 			}
 		}
 		else {
 			dir.mkdirs();
 
-			List<String> defaultconfig = DefaultConfigs.getDefaultConfigForVersion(Reference.ACCEPTED_VERSIONS);
+			List<String> defaultConfig = DefaultConfigs.getDefaultConfigForVersion(Reference.ACCEPTED_VERSIONS);
 
-			PrintWriter writer = new PrintWriter(dirpath + File.separator + "spreadsettings.txt", StandardCharsets.UTF_8);
-			for (String line : defaultconfig) {
+			PrintWriter writer = new PrintWriter(dirPath + File.separator + "spreadsettings.txt", StandardCharsets.UTF_8);
+			for (String line : defaultConfig) {
 				writer.println(line);
 			}
 			writer.close();
@@ -160,11 +164,11 @@ public class Util {
 		}
 
 		Registry<Block> blockRegistry = level.registryAccess().lookupOrThrow(Registries.BLOCK);
-		String psbstr = ConfigHandler.preventSpreadBlockString.strip().replaceAll("[^a-z0-9_.-:]", "");
+		String preventBlockString = ConfigHandler.preventSpreadBlockString.strip().replaceAll("[^a-z0-9_.-:]", "");
 		try {
-			Identifier psbrl = Identifier.parse(psbstr);
-			if (blockRegistry.keySet().contains(psbrl)) {
-				Optional<Holder.Reference<Block>> preventSpreadBlockOptionalReference = blockRegistry.get(psbrl);
+			Identifier preventBlockIdentifier = Identifier.parse(preventBlockString);
+			if (blockRegistry.keySet().contains(preventBlockIdentifier)) {
+				Optional<Holder.Reference<Block>> preventSpreadBlockOptionalReference = blockRegistry.get(preventBlockIdentifier);
 				if (preventSpreadBlockOptionalReference.isPresent()) {
 					Block registryBlock = preventSpreadBlockOptionalReference.get().value();
 					preventSpreadBlock = registryBlock;
@@ -174,18 +178,18 @@ public class Util {
 		}
 		catch (IdentifierException ignored) { }
 
-		System.out.println("[Nether Portal Spread] Unable to get a prevent-spread-block from the string '" + psbstr + "'. Using the default coal block instead.");
+		Constants.logger.warn("[" + Reference.NAME + "] Unable to get a prevent-spread-block from the string '" + preventBlockString + "'. Using the default coal block instead.");
 		preventSpreadBlock = Blocks.COAL_BLOCK;
 		return Blocks.COAL_BLOCK;
 	}
 
 	public static void loadPortalsFromWorld(Level level) {
-		String portalfolder = WorldFunctions.getWorldPath((ServerLevel)level) + File.separator + "data" + File.separator + "netherportalspread" + File.separator + "portals";
-		String specificportalfolder = portalfolder + File.separator + DimensionFunctions.getSimpleDimensionString(level);
+		String portalFolder = WorldFunctions.getWorldPath((ServerLevel)level) + File.separator + "data" + File.separator + "netherportalspread" + File.separator + "portals";
+		String specificPortalFolder = portalFolder + File.separator + DimensionFunctions.getSimpleDimensionString(level);
 
-		if (specificportalfolder.endsWith("overworld")) {
-			final File sourceDir = new File(portalfolder);
-			final File destinationDir = new File(specificportalfolder);
+		if (specificPortalFolder.endsWith("overworld")) {
+			final File sourceDir = new File(portalFolder);
+			final File destinationDir = new File(specificPortalFolder);
 			destinationDir.mkdirs();
 
 			File[] files = sourceDir.listFiles((File pathname) -> pathname.getName().endsWith(".portal"));
@@ -200,7 +204,7 @@ public class Util {
 			}
 		}
 
-		File dir = new File(specificportalfolder);
+		File dir = new File(specificPortalFolder);
 		dir.mkdirs();
 
 		File[] listOfFiles = dir.listFiles();
@@ -208,12 +212,10 @@ public class Util {
 			return;
 		}
 
-		int r = ConfigHandler.portalSpreadRadius;
-		int psamount = ConfigHandler.preventSpreadBlockAmountNeeded;
 		for (File listOfFile : listOfFiles) {
-			String filename = listOfFile.getName();
-			if (filename.endsWith(".portal")) {
-				String[] cs = filename.replace(".portal", "").split("_");
+			String fileName = listOfFile.getName();
+			if (fileName.endsWith(".portal")) {
+				String[] cs = fileName.replace(".portal", "").split("_");
 				if (cs.length == 3) {
 					if (NumberFunctions.isNumeric(cs[0]) && NumberFunctions.isNumeric(cs[1]) && NumberFunctions.isNumeric(cs[2])) {
 						int x = Integer.parseInt(cs[0]);
@@ -222,24 +224,6 @@ public class Util {
 
 						BlockPos portal = new BlockPos(x, y, z);
 						HashMapFunctions.computeIfAbsent(portals, level, k -> new CopyOnWriteArrayList<BlockPos>()).add(portal);
-
-						if (ConfigHandler.preventSpreadWithBlock) {
-							int coalcount = 0;
-							Iterator<BlockPos> it = BlockPos.betweenClosedStream(portal.getX() - r, portal.getY() - r, portal.getZ() - r, portal.getX() + r, portal.getY() + r, portal.getZ() + r).iterator();
-							while (it.hasNext()) {
-								try {
-									BlockPos np = it.next();
-									if (level.getBlockState(np).getBlock().equals(getPreventSpreadBlock(level))) {
-										coalcount++;
-										if (coalcount >= psamount) {
-											break;
-										}
-									}
-								} catch (NullPointerException ignored) { }
-							}
-
-							HashMapFunctions.computeIfAbsent(preventedportals, level, k -> new HashMap<BlockPos, Boolean>()).put(portal, coalcount >= psamount);
-						}
 					}
 				}
 			}
@@ -247,22 +231,22 @@ public class Util {
 	}
 
 	public static void savePortalToWorld(Level level, BlockPos portal) {
-		String portalfolder = WorldFunctions.getWorldPath((ServerLevel)level) + File.separator + "data" + File.separator + "netherportalspread" + File.separator + "portals" + File.separator + DimensionFunctions.getSimpleDimensionString(level);
-		File dir = new File(portalfolder);
+		String portalFolder = WorldFunctions.getWorldPath((ServerLevel)level) + File.separator + "data" + File.separator + "netherportalspread" + File.separator + "portals" + File.separator + DimensionFunctions.getSimpleDimensionString(level);
+		File dir = new File(portalFolder);
 		dir.mkdirs();
 
-		String filename = portal.getX() + "_" + portal.getY() + "_" + portal.getZ() + ".portal";
+		String fileName = portal.getX() + "_" + portal.getY() + "_" + portal.getZ() + ".portal";
 		try {
-			PrintWriter writer = new PrintWriter(portalfolder + File.separator + filename, StandardCharsets.UTF_8);
+			PrintWriter writer = new PrintWriter(portalFolder + File.separator + fileName, StandardCharsets.UTF_8);
 			writer.close();
 		} catch (Exception e) {
-			System.out.println("[Error] Nether Portal Spread: Something went wrong while saving a portal location.");
+			Constants.logger.error("[" + Reference.NAME + "] Something went wrong while saving a portal location.");
 		}
 	}
 
 	private static Boolean portalExists(Level level, BlockPos pos) {
-		for (BlockPos portalpos : HashMapFunctions.computeIfAbsent(portals, level, k -> new CopyOnWriteArrayList<BlockPos>())) {
-			double distance = pos.distSqr(new Vec3i(portalpos.getX(), portalpos.getY(), portalpos.getZ()));
+		for (BlockPos portalPos : HashMapFunctions.computeIfAbsent(portals, level, k -> new CopyOnWriteArrayList<BlockPos>())) {
+			double distance = pos.distSqr(new Vec3i(portalPos.getX(), portalPos.getY(), portalPos.getZ()));
 			if (distance < 10) {
 				return true;
 			}
@@ -271,32 +255,32 @@ public class Util {
 	}
 
 	public static void validatePortalAndAdd(Level level, BlockPos p) {
-		BlockPos rawportal = null;
+		BlockPos rawPortal = null;
 
 		int r = 3;
 		for (BlockPos nextPos : BlockPos.betweenClosed(p.getX()-r, p.getY()-r, p.getZ()-r, p.getX()+r, p.getY()+r, p.getZ()+r)) {
 			BlockState blockState = level.getBlockState(nextPos);
 			if (isPortalBlock(blockState)) {
-				rawportal = nextPos.immutable();
+				rawPortal = nextPos.immutable();
 				break;
 			}
 		}
 
-		if (rawportal == null) {
+		if (rawPortal == null) {
 			return;
 		}
 
-		while (isPortalBlock(level.getBlockState(rawportal.below()))) {
-			rawportal = rawportal.below().immutable();
+		while (isPortalBlock(level.getBlockState(rawPortal.below()))) {
+			rawPortal = rawPortal.below().immutable();
 		}
-		while (isPortalBlock(level.getBlockState(rawportal.west()))) {
-			rawportal = rawportal.west().immutable();
+		while (isPortalBlock(level.getBlockState(rawPortal.west()))) {
+			rawPortal = rawPortal.west().immutable();
 		}
-		while (isPortalBlock(level.getBlockState(rawportal.north()))) {
-			rawportal = rawportal.north().immutable();
+		while (isPortalBlock(level.getBlockState(rawPortal.north()))) {
+			rawPortal = rawPortal.north().immutable();
 		}
 
-		if (HashMapFunctions.computeIfAbsent(portals, level, k -> new CopyOnWriteArrayList<BlockPos>()).contains(rawportal) || HashMapFunctions.computeIfAbsent(preventedportals, level, k -> new HashMap<BlockPos, Boolean>()).containsKey(rawportal)) {
+		if (HashMapFunctions.computeIfAbsent(portals, level, k -> new CopyOnWriteArrayList<BlockPos>()).contains(rawPortal) || HashMapFunctions.computeIfAbsent(preventedPortals, level, k -> new HashMap<BlockPos, Boolean>()).containsKey(rawPortal)) {
 			return;
 		}
 
@@ -304,19 +288,19 @@ public class Util {
 			return;
 		}
 
-		sendSpreadingMessage(level, p);
-		preventedportals.get(level).put(p, false);
-		portals.get(level).add(rawportal);
-		savePortalToWorld(level, rawportal);
+		sendSpreadingMessage(level, rawPortal);
+		preventedPortals.get(level).put(rawPortal, false);
+		portals.get(level).add(rawPortal);
+		savePortalToWorld(level, rawPortal);
 
-		int netherblockcount = countNetherBlocks(level, p);
-		if (netherblockcount < ConfigHandler.instantConvertAmount) {
-			while (netherblockcount < ConfigHandler.instantConvertAmount) {
-				if (!spreadNextBlock(level, p)) {
+		int netherBlockCount = countNetherBlocks(level, rawPortal);
+		if (netherBlockCount < ConfigHandler.instantConvertAmount) {
+			while (netherBlockCount < ConfigHandler.instantConvertAmount) {
+				if (!spreadNextBlock(level, rawPortal)) {
 					break;
 				}
 
-				netherblockcount+=1;
+				netherBlockCount+=1;
 			}
 		}
 	}
@@ -326,17 +310,17 @@ public class Util {
 	}
 
 	public static void removePortal(Level level, BlockPos portal) {
-		String portalfolder = WorldFunctions.getWorldPath((ServerLevel)level) + File.separator + "data" + File.separator + "netherportalspread" + File.separator + "portals";
-		String filename = portal.getX() + "_" + portal.getY() + "_" + portal.getZ() + ".portal";
-		File filepath = new File(portalfolder + File.separator + filename);
+		String portalFolder = WorldFunctions.getWorldPath((ServerLevel)level) + File.separator + "data" + File.separator + "netherportalspread" + File.separator + "portals" + File.separator + DimensionFunctions.getSimpleDimensionString(level);
+		String fileName = portal.getX() + "_" + portal.getY() + "_" + portal.getZ() + ".portal";
+		File filePath = new File(portalFolder + File.separator + fileName);
 		try {
-			Files.deleteIfExists(filepath.toPath());
+			Files.deleteIfExists(filePath.toPath());
 		} catch (Exception e) {
-			System.out.println("[Error] Nether Portal Spread: Something went wrong while removing an old portal location.");
+			Constants.logger.error("[" + Reference.NAME + "] Something went wrong while removing an old portal location.");
 		}
 
 		HashMapFunctions.computeIfAbsent(portals, level, k -> new CopyOnWriteArrayList<BlockPos>()).remove(portal);
-		HashMapFunctions.computeIfAbsent(preventedportals, level, k -> new HashMap<BlockPos, Boolean>()).remove(portal);
+		HashMapFunctions.computeIfAbsent(preventedPortals, level, k -> new HashMap<BlockPos, Boolean>()).remove(portal);
 		sendBrokenPortalMessage(level, portal);
 	}
 
@@ -345,105 +329,167 @@ public class Util {
 			return true;
 		}
 
-		BlockState pbs = level.getBlockState(portal);
-		if (pbs == null) {
+		BlockState portalBlockState = level.getBlockState(portal);
+		if (portalBlockState == null) {
 			return false;
 		}
 
-		if (!CompareBlockFunctions.isPortalBlock(pbs.getBlock())) {
+		if (!CompareBlockFunctions.isPortalBlock(portalBlockState.getBlock())) {
 			removePortal(level, portal);
 			return false;
 		}
 
-		int r = ConfigHandler.portalSpreadRadius;
+		HashMap<BlockPos, Boolean> levelPreventedPortals = HashMapFunctions.computeIfAbsent(preventedPortals, level, k -> new HashMap<BlockPos, Boolean>());
+		boolean spreadStateKnown = levelPreventedPortals.containsKey(portal);
+		boolean prevented = spreadStateKnown && levelPreventedPortals.get(portal);
 
-		BlockPos closest = null;
-		double nearestdistance = 100000;
-		int coalcount = 0;
-
-		int psamount = ConfigHandler.preventSpreadBlockAmountNeeded;
-		Iterator<BlockPos> it = BlockPos.betweenClosedStream(portal.getX()-r, portal.getY()-r, portal.getZ()-r, portal.getX()+r, portal.getY()+r, portal.getZ()+r).iterator();
-		while (it.hasNext()) {
-			try {
-				BlockPos np = it.next();
-				if (ConfigHandler.preventSpreadWithBlock) {
-					if (level.getBlockState(np).getBlock().equals(getPreventSpreadBlock(level))) {
-						coalcount++;
-						if (coalcount >= psamount) {
-							break;
-						}
-					}
-				}
-				double npnd = portal.distSqr(new Vec3i(np.getX(), np.getY(), np.getZ()));
-				if (npnd < nearestdistance) {
-					if (isNetherTarget(level, np, false)) {
-						nearestdistance = npnd;
-						closest = np.immutable();
-					}
-				}
-			}
-			catch (NullPointerException ignored) { }
-		}
-
+		HashMap<SectionPos, LevelChunkSection> sections = getLoadedSectionsAround(level, portal);
 		if (ConfigHandler.preventSpreadWithBlock) {
-			if (coalcount >= psamount) {
-				boolean prevented = false;
-				if (HashMapFunctions.computeIfAbsent(preventedportals, level, k -> new HashMap<BlockPos, Boolean>()).containsKey(portal)) {
-					prevented = preventedportals.get(level).get(portal);
-				}
-
-				if (!prevented) {
+			if (countPreventSpreadBlocks(level, portal, sections) >= ConfigHandler.preventSpreadBlockAmountNeeded) {
+				if (spreadStateKnown && !prevented) {
 					sendPreventedMessage(level, portal);
 				}
 
-				preventedportals.get(level).put(portal, true);
+				levelPreventedPortals.put(portal, true);
 				return true;
 			}
 		}
 
+		BlockPos closest = findClosestConvertBlock(portal, sections);
 		if (closest != null) {
-			boolean prevented = false;
-			if (HashMapFunctions.computeIfAbsent(preventedportals, level, k -> new HashMap<BlockPos, Boolean>()).containsKey(portal)) {
-				prevented = preventedportals.get(level).get(portal);
-			}
-
 			if (prevented) {
 				sendSpreadingMessage(level, portal);
 			}
 
-			preventedportals.get(level).put(portal, false);
+			levelPreventedPortals.put(portal, false);
 			spreadNetherToBlock(level, closest);
 			return true;
 		}
 		return false;
 	}
 
-	public static int countNetherBlocks(Level level, BlockPos p) {
-		int nethercount = 0;
+	private static HashMap<SectionPos, LevelChunkSection> getLoadedSectionsAround(Level level, BlockPos portal) {
+		HashMap<SectionPos, LevelChunkSection> sections = new HashMap<>();
 		int r = ConfigHandler.portalSpreadRadius;
+		int minSectionY = SectionPos.blockToSectionCoord(portal.getY() - r);
+		int maxSectionY = SectionPos.blockToSectionCoord(portal.getY() + r);
 
-		Iterator<BlockPos> it = BlockPos.betweenClosedStream(p.getX()-r, p.getY()-r, p.getZ()-r, p.getX()+r, p.getY()+r, p.getZ()+r).iterator();
-		while (it.hasNext()) {
-			BlockPos np = it.next();
-			if (isNetherTarget(level, np, true)) {
-				nethercount+=1;
+		for (int sectionX = SectionPos.blockToSectionCoord(portal.getX() - r); sectionX <= SectionPos.blockToSectionCoord(portal.getX() + r); sectionX++) {
+			for (int sectionZ = SectionPos.blockToSectionCoord(portal.getZ() - r); sectionZ <= SectionPos.blockToSectionCoord(portal.getZ() + r); sectionZ++) {
+				LevelChunk chunk = level.getChunkSource().getChunkNow(sectionX, sectionZ);
+				if (chunk == null) {
+					continue;
+				}
+
+				for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
+					int sectionIndex = chunk.getSectionIndexFromSectionY(sectionY);
+					if (sectionIndex < 0 || sectionIndex >= chunk.getSectionsCount()) {
+						continue;
+					}
+
+					LevelChunkSection section = chunk.getSection(sectionIndex);
+					if (!section.hasOnlyAir()) {
+						sections.put(SectionPos.of(sectionX, sectionY, sectionZ), section);
+					}
+				}
 			}
 		}
-		return nethercount;
+
+		return sections;
 	}
 
-	public static Boolean isNetherTarget(Level level, BlockPos pos, Boolean count) {
-		if (level == null) {
-			return false;
+	private static Iterable<BlockPos> getPositionsInRadius(SectionPos sectionPos, BlockPos portal) {
+		int r = ConfigHandler.portalSpreadRadius;
+		int minX = Math.max(sectionPos.minBlockX(), portal.getX() - r);
+		int minY = Math.max(sectionPos.minBlockY(), portal.getY() - r);
+		int minZ = Math.max(sectionPos.minBlockZ(), portal.getZ() - r);
+		int maxX = Math.min(sectionPos.maxBlockX(), portal.getX() + r);
+		int maxY = Math.min(sectionPos.maxBlockY(), portal.getY() + r);
+		int maxZ = Math.min(sectionPos.maxBlockZ(), portal.getZ() + r);
+		return BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ);
+	}
+
+	private static double getSectionDistanceSqr(SectionPos sectionPos, BlockPos portal) {
+		int dx = Math.max(0, Math.max(sectionPos.minBlockX() - portal.getX(), portal.getX() - sectionPos.maxBlockX()));
+		int dy = Math.max(0, Math.max(sectionPos.minBlockY() - portal.getY(), portal.getY() - sectionPos.maxBlockY()));
+		int dz = Math.max(0, Math.max(sectionPos.minBlockZ() - portal.getZ(), portal.getZ() - sectionPos.maxBlockZ()));
+		return (double)dx*dx + (double)dy*dy + (double)dz*dz;
+	}
+
+	private static BlockState getSectionBlockState(LevelChunkSection section, BlockPos pos) {
+		return section.getBlockState(SectionPos.sectionRelative(pos.getX()), SectionPos.sectionRelative(pos.getY()), SectionPos.sectionRelative(pos.getZ()));
+	}
+
+	private static int countPreventSpreadBlocks(Level level, BlockPos portal, HashMap<SectionPos, LevelChunkSection> sections) {
+		Block preventBlock = getPreventSpreadBlock(level);
+		int amountNeeded = ConfigHandler.preventSpreadBlockAmountNeeded;
+		int preventBlockCount = 0;
+
+		for (Map.Entry<SectionPos, LevelChunkSection> entry : sections.entrySet()) {
+			LevelChunkSection section = entry.getValue();
+			if (!section.maybeHas(state -> state.is(preventBlock))) {
+				continue;
+			}
+
+			for (BlockPos pos : getPositionsInRadius(entry.getKey(), portal)) {
+				if (getSectionBlockState(section, pos).is(preventBlock)) {
+					preventBlockCount++;
+					if (preventBlockCount >= amountNeeded) {
+						return preventBlockCount;
+					}
+				}
+			}
 		}
 
-		BlockState state = level.getBlockState(pos);
-		Block block = state.getBlock();
+		return preventBlockCount;
+	}
 
-		if (count) {
-			return convertedblocks.contains(block);
+	private static BlockPos findClosestConvertBlock(BlockPos portal, HashMap<SectionPos, LevelChunkSection> sections) {
+		List<SectionPos> candidateSections = new ArrayList<>();
+		for (Map.Entry<SectionPos, LevelChunkSection> entry : sections.entrySet()) {
+			if (entry.getValue().maybeHas(state -> convertBlocks.contains(state.getBlock()))) {
+				candidateSections.add(entry.getKey());
+			}
 		}
-		return convertblocks.contains(block);
+		candidateSections.sort(Comparator.comparingDouble(sectionPos -> getSectionDistanceSqr(sectionPos, portal)));
+
+		BlockPos closest = null;
+		double nearestDistance = Double.MAX_VALUE;
+		for (SectionPos sectionPos : candidateSections) {
+			if (getSectionDistanceSqr(sectionPos, portal) >= nearestDistance) {
+				break;
+			}
+
+			LevelChunkSection section = sections.get(sectionPos);
+			for (BlockPos pos : getPositionsInRadius(sectionPos, portal)) {
+				double distance = portal.distSqr(pos);
+				if (distance < nearestDistance && convertBlocks.contains(getSectionBlockState(section, pos).getBlock())) {
+					nearestDistance = distance;
+					closest = pos.immutable();
+				}
+			}
+		}
+
+		return closest;
+	}
+
+	public static int countNetherBlocks(Level level, BlockPos portal) {
+		int netherBlockCount = 0;
+
+		for (Map.Entry<SectionPos, LevelChunkSection> entry : getLoadedSectionsAround(level, portal).entrySet()) {
+			LevelChunkSection section = entry.getValue();
+			if (!section.maybeHas(state -> convertedBlocks.contains(state.getBlock()))) {
+				continue;
+			}
+
+			for (BlockPos pos : getPositionsInRadius(entry.getKey(), portal)) {
+				if (convertedBlocks.contains(getSectionBlockState(section, pos).getBlock())) {
+					netherBlockCount++;
+				}
+			}
+		}
+
+		return netherBlockCount;
 	}
 
 	public static void spreadNetherToBlock(Level level, BlockPos pos) {
@@ -456,16 +502,16 @@ public class Util {
 
 		Block curBlock = currentBlockState.getBlock();
 
-		if (convertblocks.contains(curBlock)) {
+		if (convertBlocks.contains(curBlock)) {
 			// key: from-block, value: HashMap of to-block and weight. so if two had weight 10 and 5, (1/15)*10 == 66.65% and 33.35% chance.
-			RandomCollection<Block> rc = new RandomCollection<>(); //.add(40, "a").add(35, "b").add(25, "c");
-			HashMap<Block, Double> hashmap = convertinto.get(curBlock);
-			for (Block b0 : hashmap.keySet()) {
-				Double weight = hashmap.get(b0);
-				rc.add(weight*100, b0);
+			RandomCollection<Block> randomCollection = new RandomCollection<>(); //.add(40, "a").add(35, "b").add(25, "c");
+			HashMap<Block, Double> toBlockWeights = convertInto.get(curBlock);
+			for (Block toBlock : toBlockWeights.keySet()) {
+				Double weight = toBlockWeights.get(toBlock);
+				randomCollection.add(weight*100, toBlock);
 			}
 
-			newBlockState = rc.next().withPropertiesOf(currentBlockState);
+			newBlockState = randomCollection.next().withPropertiesOf(currentBlockState);
 		}
 
 		if (newBlockState != null) {
@@ -500,11 +546,11 @@ public class Util {
 		MessageFunctions.sendMessageToPlayersAround(level, p, ConfigHandler.portalSpreadRadius, formatAroundString(level, message, ConfigHandler.preventSpreadBlockAmountNeeded, p), ChatFormatting.DARK_GREEN);
 	}
 	
-	private static String formatAroundString(Level level, String message, int amountneeded, BlockPos portal) {
-		String blockstring = BlockFunctions.blockToReadableString(getPreventSpreadBlock(level), amountneeded);
+	private static String formatAroundString(Level level, String message, int amountNeeded, BlockPos portal) {
+		String blockString = BlockFunctions.blockToReadableString(getPreventSpreadBlock(level), amountNeeded);
 
-		message = message.replace("%preventSpreadBlockString%", blockstring);
-		message = message.replace("%preventSpreadBlockAmountNeeded%", amountneeded + "");
+		message = message.replace("%preventSpreadBlockString%", blockString);
+		message = message.replace("%preventSpreadBlockAmountNeeded%", amountNeeded + "");
 		message = message.replace("%portalSpreadRadius%", ConfigHandler.portalSpreadRadius + "");
 		if (ConfigHandler.prefixPortalCoordsInMessage) {
 			message = "Portal {" + portal.getX() + ", " + portal.getY() + ", " + portal.getZ() + "}: " + message;

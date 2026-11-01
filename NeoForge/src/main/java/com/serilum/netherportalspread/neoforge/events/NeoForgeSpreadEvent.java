@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerChangedDimensionEvent;
-import net.neoforged.neoforge.event.level.BlockEvent.PortalSpawnEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 
@@ -33,16 +32,6 @@ public class NeoForgeSpreadEvent {
 		SpreadEvent.onWorldLoad((ServerLevel)level);
 	}
 
-	@SubscribeEvent
-	public static void onPortalSpawn(PortalSpawnEvent e) {
-		Level level = WorldFunctions.getWorldIfInstanceOfAndNotRemote(e.getLevel());
-		if (level == null) {
-			return;
-		}
-
-		SpreadEvent.onPortalSpawn(level, e.getPos(), e.getPortalSize());
-	}
-	
 	@SubscribeEvent
 	public static void onDimensionChange(PlayerChangedDimensionEvent e) {
 		Player player = e.getEntity();
